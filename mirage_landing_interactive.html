@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mirage — Know what's actually in your skincare</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-dark:#0A1C2F;
+    --navy-mid:#1A334D;
+    --navy-light:#2A4B6E;
+    --beige-bg:#F8F4EC;
+    --beige-card:#FFFFFF;
+    --beige-border:#E0D4C0;
+    --beige-hover:#F0EAE0;
+    --gold:#C9A96E;
+    --gold-light:#E4CDA8;
+    --text-soft:#6B8A9E;
+    --font-display:'Playfair Display', serif;
+    --font-body:'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font-body);
+    background:var(--beige-bg);
+    color:var(--navy-dark);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+  /* ===== NAV ===== */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 6%;
+    background:rgba(248,244,236,0.9);
+    backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--beige-border);
+    transition:padding .3s, box-shadow .3s;
+  }
+  nav.scrolled{padding:14px 6%;box-shadow:0 4px 30px rgba(10,28,47,.07);}
+  .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;cursor:pointer;}
+  .logo .mark{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .3s;
+  }
+  .logo:hover .mark{transform:rotate(-8deg) scale(1.08);}
+  .logo .mark svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;}
+  .nav-links{display:flex;gap:36px;font-size:14px;font-weight:500;color:var(--navy-light);}
+  .nav-links a{position:relative;padding-bottom:2px;}
+  .nav-links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1.5px;background:var(--gold);transition:width .25s;}
+  .nav-links a:hover::after{width:100%;}
+  .nav-links a:hover{color:var(--navy-dark);}
+  .nav-cta{
+    background:var(--navy-dark);color:#fff;padding:10px 22px;
+    border-radius:50px;font-size:14px;font-weight:600;
+    transition:all .25s;border:2px solid transparent;
+  }
+  .nav-cta:hover{background:transparent;color:var(--navy-dark);border-color:var(--navy-dark);}
+  /* hamburger */
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;}
+  .hamburger span{width:22px;height:2px;background:var(--navy-dark);border-radius:2px;transition:all .3s;}
+  .hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+  .hamburger.open span:nth-child(2){opacity:0;}
+  .hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+  .mobile-menu{
+    display:none;position:fixed;top:65px;left:0;right:0;z-index:190;
+    background:var(--beige-bg);border-bottom:1px solid var(--beige-border);
+    padding:20px 6%;flex-direction:column;gap:18px;
+    transform:translateY(-20px);opacity:0;transition:all .3s;
+  }
+  .mobile-menu.open{display:flex;transform:translateY(0);opacity:1;}
+  .mobile-menu a{font-size:16px;font-weight:500;color:var(--navy-light);padding:4px 0;}
+  @media(max-width:760px){.nav-links{display:none;}.hamburger{display:flex;}.nav-cta{display:none;}}
+
+  /* ===== SCROLL REVEAL ===== */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);}
+  .reveal.in{opacity:1;transform:translateY(0);}
+  .reveal-left{opacity:0;transform:translateX(-28px);transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);}
+  .reveal-left.in{opacity:1;transform:translateX(0);}
+  .reveal-right{opacity:0;transform:translateX(28px);transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);}
+  .reveal-right.in{opacity:1;transform:translateX(0);}
+  .delay-1{transition-delay:.1s;} .delay-2{transition-delay:.2s;} .delay-3{transition-delay:.3s;}
+  .delay-4{transition-delay:.4s;} .delay-5{transition-delay:.5s;}
+
+  /* ===== HERO ===== */
+  .hero{
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:60px;padding:140px 6% 80px;
+    max-width:1280px;margin:0 auto;
+    position:relative;
+  }
+  .hero-copy{flex:1;min-width:300px;max-width:560px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--navy-light);
+    background:var(--beige-card);border:1px solid var(--beige-border);
+    padding:7px 14px;border-radius:50px;margin-bottom:24px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  h1{
+    font-family:var(--font-display);
+    font-size:clamp(40px,5.5vw,64px);
+    line-height:1.06;font-weight:600;letter-spacing:-1px;margin-bottom:22px;
+  }
+  h1 em{
+    font-style:italic;
+    background:linear-gradient(135deg,var(--navy-mid),var(--gold));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero p.sub{font-size:17px;line-height:1.65;color:var(--navy-light);margin-bottom:34px;max-width:460px;}
+  .hero-actions{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--navy-dark);color:#fff;padding:15px 28px;border-radius:50px;
+    font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:8px;
+    box-shadow:0 12px 30px rgba(10,28,47,.18);
+    transition:transform .25s, background .25s, box-shadow .25s;
+    border:2px solid var(--navy-dark);cursor:pointer;
+  }
+  .btn-primary:hover{background:var(--gold);color:var(--navy-dark);border-color:var(--gold);transform:translateY(-2px);box-shadow:0 18px 40px rgba(201,169,110,.3);}
+  .btn-secondary{
+    font-weight:600;font-size:15px;color:var(--navy-dark);display:inline-flex;align-items:center;gap:6px;
+    border-bottom:1.5px solid var(--gold);padding-bottom:2px;transition:gap .2s, color .2s;cursor:pointer;
+  }
+  .btn-secondary:hover{gap:12px;color:var(--gold);}
+  .hero-trust{display:flex;gap:28px;margin-top:46px;flex-wrap:wrap;}
+  .trust-item .num{
+    font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--navy-dark);
+    transition:transform .3s;display:inline-block;
+  }
+  .trust-item:hover .num{transform:scale(1.12);}
+  .trust-item .lbl{font-size:12px;color:var(--text-soft);font-weight:600;letter-spacing:.3px;}
+
+  /* ===== PHONE MOCKUP ===== */
+  .phone-wrap{
+    flex:1;min-width:280px;display:flex;justify-content:center;position:relative;flex-direction:column;align-items:center;gap:20px;
+  }
+  .phone-wrap::before{
+    content:'';position:absolute;width:480px;height:480px;
+    background:radial-gradient(circle,rgba(201,169,110,.22),transparent 70%);
+    filter:blur(10px);z-index:0;top:50%;transform:translateY(-50%);
+  }
+  .phone{
+    position:relative;z-index:1;
+    width:290px;height:592px;border-radius:42px;
+    background:var(--navy-dark);padding:12px;
+    box-shadow:0 40px 80px rgba(10,28,47,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+    transition:transform .4s cubic-bezier(.16,1,.3,1);
+  }
+  .phone:hover{transform:translateY(-6px) rotate(.5deg);}
+  .phone .screen{
+    width:100%;height:100%;border-radius:32px;overflow:hidden;position:relative;background:var(--beige-bg);
+  }
+  .notch{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:90px;height:22px;background:var(--navy-dark);border-radius:14px;z-index:5;
+  }
+
+  /* phone tab buttons */
+  .phone-tabs{
+    position:relative;z-index:1;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  }
+  .phone-tab{
+    font-size:11px;font-weight:600;padding:6px 14px;border-radius:50px;
+    border:1.5px solid var(--beige-border);background:var(--beige-card);
+    color:var(--navy-light);cursor:pointer;transition:all .2s;
+  }
+  .phone-tab:hover{border-color:var(--gold);color:var(--navy-dark);}
+  .phone-tab.active{background:var(--navy-dark);color:#fff;border-color:var(--navy-dark);}
+
+  /* mock screens */
+  .mock-screen{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    opacity:0;pointer-events:none;
+    transition:opacity .4s cubic-bezier(.16,1,.3,1), transform .4s cubic-bezier(.16,1,.3,1);
+    transform:translateY(12px);
+    padding:40px 18px 16px;
+  }
+  .mock-screen.active{opacity:1;pointer-events:auto;transform:translateY(0);}
+  .mock-title{font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--navy-dark);margin-bottom:4px;}
+  .mock-sub{font-size:11px;color:var(--text-soft);margin-bottom:16px;}
+
+  /* screen 1: scan */
+  .scan-frame{
+    flex:1;border-radius:20px;background:linear-gradient(160deg,#2A4B6E,#0A1C2F);
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  }
+  .scan-frame .face{width:90px;height:110px;border-radius:50% 50% 45% 45%;background:rgba(255,255,255,.12);}
+  .scan-line{
+    position:absolute;left:8%;right:8%;height:2px;background:var(--gold-light);
+    box-shadow:0 0 12px var(--gold);animation:sweep 2s ease-in-out infinite;
+  }
+  @keyframes sweep{0%{top:15%;}50%{top:85%;}100%{top:15%;}}
+  .scan-badge{
+    position:absolute;bottom:14px;left:14px;right:14px;background:rgba(255,255,255,.92);
+    border-radius:12px;padding:8px 10px;font-size:10px;font-weight:600;color:var(--navy-dark);
+    display:flex;align-items:center;gap:6px;
+  }
+  .scan-dots{display:inline-flex;gap:3px;align-items:center;}
+  .scan-dots span{width:4px;height:4px;border-radius:50%;background:var(--gold);animation:blink 1.2s infinite;}
+  .scan-dots span:nth-child(2){animation-delay:.2s;}.scan-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,100%{opacity:.3;}50%{opacity:1;}}
+
+  /* screen 2: ingredient list */
+  .ing-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--beige-card);border:1px solid var(--beige-border);
+    border-radius:12px;padding:10px 12px;margin-bottom:8px;
+    cursor:pointer;transition:all .2s;
+  }
+  .ing-row:hover{border-color:var(--gold);transform:translateX(3px);}
+  .ing-row .name{font-size:12px;font-weight:600;}
+  .ing-row .tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;}
+  .tag.good{background:#E8F2EA;color:#2F7D4F;}
+  .tag.warn{background:#FBEFD9;color:#A87B1E;}
+  .tag.ok{background:#EFF3F8;color:var(--navy-light);}
+
+  /* screen 3: score */
+  .score-ring{
+    width:120px;height:120px;border-radius:50%;margin:6px auto 14px;
+    background:conic-gradient(var(--gold) 0% 87%, var(--beige-border) 87% 100%);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .score-ring .inner{
+    width:92px;height:92px;border-radius:50%;background:var(--beige-card);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .score-ring .inner .n{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--navy-dark);}
+  .score-ring .inner .l{font-size:9px;color:var(--text-soft);font-weight:600;}
+  .score-bars{display:flex;flex-direction:column;gap:7px;margin-top:auto;}
+  .score-bar-row{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--navy-light);}
+  .score-bar-track{flex:1;height:5px;border-radius:4px;background:var(--beige-border);overflow:hidden;}
+  .score-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--navy-light),var(--gold));width:0;transition:width 1s cubic-bezier(.16,1,.3,1);}
+  .mock-screen.active .score-bar-fill{width:var(--w);}
+
+  /* screen 4: routine */
+  .routine-card{
+    display:flex;gap:10px;align-items:center;background:var(--beige-card);
+    border:1px solid var(--beige-border);border-radius:14px;padding:10px;margin-bottom:9px;
+    cursor:pointer;transition:all .2s;
+  }
+  .routine-card:hover{border-color:var(--gold);transform:translateX(3px);}
+  .routine-card .ic{
+    width:34px;height:34px;border-radius:10px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .routine-card .t{font-size:11.5px;font-weight:600;}
+  .routine-card .s{font-size:9px;color:var(--text-soft);}
+
+  /* ===== SECTIONS ===== */
+  section{padding:100px 6%;max-width:1280px;margin:0 auto;}
+  .section-head{max-width:620px;margin-bottom:60px;}
+  .section-head .eyebrow{margin-bottom:18px;}
+  .section-head h2{
+    font-family:var(--font-display);font-size:clamp(30px,3.6vw,42px);font-weight:600;
+    letter-spacing:-.5px;line-height:1.15;margin-bottom:16px;
+  }
+  .section-head p{color:var(--navy-light);font-size:16px;line-height:1.6;}
+
+  /* ===== FEATURES ===== */
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+  @media(max-width:900px){.feature-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+  .feature-card{
+    background:var(--beige-card);border:1px solid var(--beige-border);
+    border-radius:24px;padding:32px 28px;
+    transition:transform .3s, box-shadow .3s, border-color .3s;
+    cursor:default;position:relative;overflow:hidden;
+  }
+  .feature-card::after{
+    content:'';position:absolute;inset:0;border-radius:24px;
+    background:linear-gradient(135deg,rgba(201,169,110,.06),transparent);
+    opacity:0;transition:opacity .3s;
+  }
+  .feature-card:hover{transform:translateY(-6px);box-shadow:0 24px 50px rgba(10,28,47,.1);border-color:var(--gold-light);}
+  .feature-card:hover::after{opacity:1;}
+  .feature-card .ic{
+    width:46px;height:46px;border-radius:14px;margin-bottom:20px;
+    background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .3s;
+  }
+  .feature-card:hover .ic{transform:scale(1.1) rotate(-5deg);}
+  .feature-card .ic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;}
+  .feature-card h3{font-size:17px;font-weight:700;margin-bottom:10px;}
+  .feature-card p{font-size:14px;color:var(--navy-light);line-height:1.6;}
+
+  /* ===== INGREDIENT CHECKER ===== */
+  .checker-section{
+    background:var(--navy-dark);border-radius:32px;
+    padding:70px 8%;margin:0 6%;
+    position:relative;overflow:hidden;
+  }
+  .checker-section::before{
+    content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+    background:radial-gradient(circle,rgba(201,169,110,.1),transparent 70%);
+    top:-200px;left:-200px;pointer-events:none;
+  }
+  .checker-inner{display:flex;gap:60px;align-items:flex-start;flex-wrap:wrap;}
+  .checker-copy{flex:1;min-width:280px;}
+  .checker-copy .eyebrow{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#B9CBE0;}
+  .checker-copy h2{font-family:var(--font-display);color:#fff;font-size:clamp(26px,3vw,38px);font-weight:600;letter-spacing:-.5px;line-height:1.15;margin-bottom:14px;}
+  .checker-copy p{color:#8AAAC0;font-size:15px;line-height:1.65;}
+  .checker-tool{flex:1;min-width:280px;max-width:480px;}
+  .checker-input-wrap{position:relative;margin-bottom:12px;}
+  .checker-input{
+    width:100%;padding:16px 50px 16px 18px;border-radius:16px;
+    border:1.5px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.06);color:#fff;font-size:14px;font-family:var(--font-body);
+    outline:none;transition:border .2s, background .2s;
+  }
+  .checker-input:focus{border-color:var(--gold);background:rgba(255,255,255,.1);}
+  .checker-input::placeholder{color:#5A7A8E;}
+  .checker-icon{
+    position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    color:#5A7A8E;pointer-events:none;
+  }
+  .checker-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;}
+  .common-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+  .common-tag{
+    font-size:11px;font-weight:600;padding:5px 12px;border-radius:50px;
+    border:1.5px solid rgba(255,255,255,.15);color:#8AAAC0;cursor:pointer;
+    transition:all .2s;background:rgba(255,255,255,.04);
+  }
+  .common-tag:hover{border-color:var(--gold);color:var(--gold-light);background:rgba(201,169,110,.08);}
+  .checker-results{display:flex;flex-direction:column;gap:10px;min-height:60px;}
+  .checker-result{
+    background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);
+    border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+    animation:slideIn .3s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .checker-result .result-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .result-dot.good{background:#4CAF78;}
+  .result-dot.warn{background:#E8A838;}
+  .result-dot.bad{background:#E05555;}
+  .checker-result .result-name{font-size:13px;font-weight:700;color:#fff;}
+  .checker-result .result-desc{font-size:11px;color:#8AAAC0;margin-top:2px;}
+  .checker-result .result-tag{
+    margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;flex-shrink:0;
+  }
+  .result-tag.good{background:rgba(76,175,120,.2);color:#4CAF78;}
+  .result-tag.warn{background:rgba(232,168,56,.2);color:#E8A838;}
+  .result-tag.bad{background:rgba(224,85,85,.2);color:#E05555;}
+  .checker-empty{color:#5A7A8E;font-size:13px;text-align:center;padding:20px 0;}
+
+  /* ===== SKIN TYPE QUIZ ===== */
+  .quiz-section{background:var(--beige-card);border-radius:32px;padding:70px 8%;margin:60px 6%;border:1px solid var(--beige-border);}
+  .quiz-inner{display:flex;gap:60px;align-items:flex-start;flex-wrap:wrap;}
+  .quiz-copy{flex:1;min-width:260px;}
+  .quiz-copy h2{font-family:var(--font-display);font-size:clamp(26px,3vw,36px);font-weight:600;letter-spacing:-.5px;line-height:1.15;margin-bottom:12px;}
+  .quiz-copy p{color:var(--navy-light);font-size:15px;line-height:1.65;}
+  .quiz-widget{flex:1;min-width:280px;max-width:460px;}
+  .quiz-progress{display:flex;gap:6px;margin-bottom:24px;}
+  .quiz-pip{height:4px;flex:1;border-radius:4px;background:var(--beige-border);transition:background .4s;}
+  .quiz-pip.done{background:var(--gold);}
+  .quiz-pip.active{background:var(--navy-light);}
+  .quiz-question{font-size:16px;font-weight:700;color:var(--navy-dark);margin-bottom:16px;line-height:1.4;}
+  .quiz-options{display:flex;flex-direction:column;gap:10px;}
+  .quiz-opt{
+    display:flex;align-items:center;gap:12px;padding:13px 16px;
+    border-radius:14px;border:1.5px solid var(--beige-border);
+    background:var(--beige-bg);cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;
+  }
+  .quiz-opt:hover{border-color:var(--gold);background:var(--beige-hover);}
+  .quiz-opt.selected{border-color:var(--navy-dark);background:var(--navy-dark);color:#fff;}
+  .quiz-opt .opt-emoji{font-size:18px;flex-shrink:0;}
+  .quiz-nav{display:flex;gap:10px;margin-top:20px;}
+  .quiz-btn{
+    flex:1;padding:12px;border-radius:50px;border:none;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;
+  }
+  .quiz-btn.back{background:var(--beige-border);color:var(--navy-light);}
+  .quiz-btn.back:hover{background:#d0c4b0;}
+  .quiz-btn.next{background:var(--navy-dark);color:#fff;}
+  .quiz-btn.next:hover{background:var(--gold);color:var(--navy-dark);}
+  .quiz-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .quiz-result{
+    background:linear-gradient(135deg,var(--navy-dark),var(--navy-mid));
+    border-radius:20px;padding:28px 24px;color:#fff;text-align:center;
+    animation:slideIn .4s cubic-bezier(.16,1,.3,1);
+  }
+  .quiz-result .r-emoji{font-size:40px;margin-bottom:12px;}
+  .quiz-result .r-type{font-family:var(--font-display);font-size:22px;font-weight:600;margin-bottom:8px;}
+  .quiz-result .r-desc{font-size:13px;color:#8AAAC0;line-height:1.6;margin-bottom:20px;}
+  .quiz-result .r-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px;}
+  .quiz-result .r-tag{font-size:11px;font-weight:600;padding:5px 14px;border-radius:50px;background:rgba(255,255,255,.12);color:var(--gold-light);}
+  .quiz-restart{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:600;padding:9px 20px;border-radius:50px;cursor:pointer;transition:all .2s;}
+  .quiz-restart:hover{background:rgba(255,255,255,.2);}
+
+  /* ===== HOW IT WORKS ===== */
+  .steps{display:flex;flex-direction:column;gap:0;}
+  .step-row{
+    display:flex;gap:32px;align-items:flex-start;padding:30px 0;
+    border-bottom:1px solid var(--beige-border);cursor:default;
+    transition:padding .3s;
+  }
+  .step-row:first-child{border-top:1px solid var(--beige-border);}
+  .step-row:hover{padding-left:12px;}
+  .step-num{
+    font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--gold);
+    width:30px;flex-shrink:0;padding-top:3px;transition:transform .3s;
+  }
+  .step-row:hover .step-num{transform:scale(1.3);}
+  .step-row h4{font-size:18px;font-weight:700;margin-bottom:6px;}
+  .step-row p{font-size:14.5px;color:var(--navy-light);max-width:520px;line-height:1.6;}
+
+  /* ===== SOCIAL PROOF / TICKER ===== */
+  .ticker-wrap{overflow:hidden;padding:28px 0;border-top:1px solid var(--beige-border);border-bottom:1px solid var(--beige-border);margin:0;background:var(--beige-card);}
+  .ticker-track{display:flex;gap:48px;width:max-content;animation:ticker 28s linear infinite;}
+  .ticker-track:hover{animation-play-state:paused;}
+  @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .ticker-item{
+    display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;
+    color:var(--navy-light);white-space:nowrap;flex-shrink:0;
+  }
+  .ticker-item .t-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);}
+
+  /* ===== STATS COUNTER ===== */
+  .stats-row{
+    display:flex;gap:0;border:1px solid var(--beige-border);border-radius:24px;
+    overflow:hidden;background:var(--beige-card);margin-bottom:60px;
+  }
+  .stat-cell{
+    flex:1;padding:36px 28px;text-align:center;border-right:1px solid var(--beige-border);
+    transition:background .3s;cursor:default;
+  }
+  .stat-cell:last-child{border-right:none;}
+  .stat-cell:hover{background:var(--beige-hover);}
+  .stat-cell .s-num{
+    font-family:var(--font-display);font-size:40px;font-weight:700;
+    color:var(--navy-dark);line-height:1;margin-bottom:8px;
+    display:block;
+  }
+  .stat-cell .s-lbl{font-size:13px;color:var(--text-soft);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+  @media(max-width:640px){.stats-row{flex-direction:column;}.stat-cell{border-right:none;border-bottom:1px solid var(--beige-border);}.stat-cell:last-child{border-bottom:none;}}
+
+  /* ===== CTA ===== */
+  .cta-band{
+    margin:40px 6% 100px;border-radius:32px;
+    background:linear-gradient(135deg,var(--navy-mid),var(--navy-dark));
+    padding:80px 8%;text-align:center;position:relative;overflow:hidden;
+  }
+  .cta-band::before{
+    content:'';position:absolute;width:500px;height:500px;border-radius:50%;
+    background:radial-gradient(circle,rgba(201,169,110,.18),transparent 70%);
+    top:-200px;right:-150px;pointer-events:none;
+  }
+  .cta-band h2{
+    font-family:var(--font-display);color:#fff;font-size:clamp(28px,4vw,40px);
+    font-weight:600;margin-bottom:16px;position:relative;
+  }
+  .cta-band p{color:#B9CBE0;font-size:16px;margin-bottom:30px;position:relative;}
+  .cta-band .btn-primary{background:var(--gold);color:var(--navy-dark);position:relative;border-color:var(--gold);}
+  .cta-band .btn-primary:hover{background:#fff;border-color:#fff;}
+
+  /* email input in cta */
+  .cta-email-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
+  .cta-email-input{
+    padding:14px 20px;border-radius:50px;border:none;font-size:14px;font-family:var(--font-body);
+    background:rgba(255,255,255,.12);color:#fff;outline:none;width:260px;
+    border:1.5px solid rgba(255,255,255,.2);transition:all .2s;
+  }
+  .cta-email-input::placeholder{color:rgba(255,255,255,.4);}
+  .cta-email-input:focus{background:rgba(255,255,255,.18);border-color:var(--gold);}
+  .cta-note{font-size:12px;color:rgba(255,255,255,.35);position:relative;}
+  .cta-success{
+    display:none;align-items:center;justify-content:center;gap:8px;
+    color:var(--gold-light);font-size:15px;font-weight:600;
+    animation:slideIn .4s cubic-bezier(.16,1,.3,1);
+  }
+  .cta-success.show{display:flex;}
+
+  footer{
+    padding:36px 6%;display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid var(--beige-border);font-size:13px;color:var(--text-soft);
+    flex-wrap:wrap;gap:10px;
+  }
+  footer a:hover{color:var(--navy-dark);}
+
+  /* ===== CURSOR GLOW ===== */
+  .cursor-glow{
+    position:fixed;pointer-events:none;z-index:9999;
+    width:320px;height:320px;border-radius:50%;
+    background:radial-gradient(circle,rgba(201,169,110,.08),transparent 70%);
+    transform:translate(-50%,-50%);
+    transition:left .12s ease, top .12s ease;
+    mix-blend-mode:multiply;
+  }
+  @media(max-width:760px){.cursor-glow{display:none;}}
+</style>
+</head>
+<body>
+
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="logo">
+    <div class="mark"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 4 10 4 15a8 8 0 0 0 16 0C20 10 12 2 12 2z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="1.5"/><path d="M8.5 16.5Q10 14 12 15.5Q14 17 15.5 15" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+    Mirage
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#checker">Ingredient check</a>
+    <a href="#how">How it works</a>
+    <a href="#cta">Get started</a>
+  </div>
+  <a href="#cta" class="nav-cta">Try Mirage</a>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="closeMenu()">Features</a>
+  <a href="#checker" onclick="closeMenu()">Ingredient check</a>
+  <a href="#how" onclick="closeMenu()">How it works</a>
+  <a href="#cta" class="btn-primary" style="justify-content:center;" onclick="closeMenu()">Try Mirage</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-copy reveal-left">
+    <div class="eyebrow"><span class="dot"></span> Beauty intelligence, decoded</div>
+    <h1>Know what's<br><em>actually</em> in your skincare.</h1>
+    <p class="sub">Scan any product or your own skin and Mirage breaks down every ingredient, flags what doesn't belong, and builds a routine that fits your skin — not a marketing label.</p>
+    <div class="hero-actions">
+      <a href="#cta" class="btn-primary">Start scanning <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      <a href="#how" class="btn-secondary">See how it works <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item">
+        <div class="num" data-count="40000" data-suffix="K+">0</div>
+        <div class="lbl">INGREDIENTS INDEXED</div>
+      </div>
+      <div class="trust-item">
+        <div class="num">6-pt</div>
+        <div class="lbl">TRANSPARENCY SCORE</div>
+      </div>
+      <div class="trust-item">
+        <div class="num">&lt;3s</div>
+        <div class="lbl">SCAN TO RESULT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-wrap reveal-right">
+    <div class="phone" id="phoneDevice">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="mock-screen active" data-screen="0">
+          <div class="mock-title">Scanning skin</div>
+          <div class="mock-sub">Hold steady for best results</div>
+          <div class="scan-frame">
+            <div class="face"></div>
+            <div class="scan-line"></div>
+            <div class="scan-badge">✦ Analyzing hydration &amp; tone… <div class="scan-dots"><span></span><span></span><span></span></div></div>
+          </div>
+        </div>
+        <div class="mock-screen" data-screen="1">
+          <div class="mock-title">Ingredient breakdown</div>
+          <div class="mock-sub">Hydrating Serum · 14 ingredients</div>
+          <div class="ing-row"><span class="name">Hyaluronic Acid</span><span class="tag good">Great</span></div>
+          <div class="ing-row"><span class="name">Niacinamide</span><span class="tag good">Great</span></div>
+          <div class="ing-row"><span class="name">Fragrance</span><span class="tag warn">Watch</span></div>
+          <div class="ing-row"><span class="name">Glycerin</span><span class="tag ok">Fine</span></div>
+        </div>
+        <div class="mock-screen" data-screen="2">
+          <div class="mock-title">Transparency Score</div>
+          <div class="mock-sub">How honest is this label, really</div>
+          <div class="score-ring"><div class="inner"><div class="n">87</div><div class="l">SCORE</div></div></div>
+          <div class="score-bars">
+            <div class="score-bar-row">Sourcing<div class="score-bar-track"><div class="score-bar-fill" style="--w:92%"></div></div></div>
+            <div class="score-bar-row">Disclosure<div class="score-bar-track"><div class="score-bar-fill" style="--w:81%"></div></div></div>
+            <div class="score-bar-row">Safety data<div class="score-bar-track"><div class="score-bar-fill" style="--w:88%"></div></div></div>
+          </div>
+        </div>
+        <div class="mock-screen" data-screen="3">
+          <div class="mock-title">Your routine</div>
+          <div class="mock-sub">Built for combination skin</div>
+          <div class="routine-card"><div class="ic">🧼</div><div><div class="t">Gentle Cleanser</div><div class="s">AM &amp; PM</div></div></div>
+          <div class="routine-card"><div class="ic">💧</div><div><div class="t">Hydrating Serum</div><div class="s">AM</div></div></div>
+          <div class="routine-card"><div class="ic">☀️</div><div><div class="t">SPF 50</div><div class="s">AM, every 2hrs</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-tabs">
+      <button class="phone-tab active" onclick="switchScreen(0)">Scan</button>
+      <button class="phone-tab" onclick="switchScreen(1)">Ingredients</button>
+      <button class="phone-tab" onclick="switchScreen(2)">Score</button>
+      <button class="phone-tab" onclick="switchScreen(3)">Routine</button>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- STATS -->
+<section id="features" style="padding-bottom:40px;">
+  <div class="stats-row reveal">
+    <div class="stat-cell">
+      <span class="s-num" data-count="40" data-suffix="K+">0</span>
+      <div class="s-lbl">Ingredients indexed</div>
+    </div>
+    <div class="stat-cell">
+      <span class="s-num" data-count="98" data-suffix="%">0</span>
+      <div class="s-lbl">Label accuracy rate</div>
+    </div>
+    <div class="stat-cell">
+      <span class="s-num" data-count="3" data-suffix="s">0</span>
+      <div class="s-lbl">Avg scan time</div>
+    </div>
+    <div class="stat-cell">
+      <span class="s-num" data-count="12" data-suffix="K+">0</span>
+      <div class="s-lbl">Products catalogued</div>
+    </div>
+  </div>
+
+  <div class="section-head reveal">
+    <div class="eyebrow"><span class="dot"></span> Why Mirage</div>
+    <h2>Skincare decisions, backed by data — not guesswork.</h2>
+    <p>Every claim in your bathroom cabinet, checked against real formulation science.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal delay-1">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12c0-4 3-8 9-8s9 4 9 8-3 8-9 8-9-4-9-8z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+      <h3>Skin scan</h3>
+      <p>Point your camera at your face and get a read on hydration, tone, and texture in seconds.</p>
+    </div>
+    <div class="feature-card reveal delay-2">
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg></div>
+      <h3>Ingredient lookup</h3>
+      <p>Scan a barcode or search a product to see exactly what's inside, in plain language.</p>
+    </div>
+    <div class="feature-card reveal delay-3">
+      <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <h3>Transparency score</h3>
+      <p>A six-factor rating shows how forthcoming a brand actually is about its formula.</p>
+    </div>
+    <div class="feature-card reveal delay-1">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <h3>Personal routine</h3>
+      <p>A morning and evening routine built from your skin profile, not a generic checklist.</p>
+    </div>
+    <div class="feature-card reveal delay-2">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l9 4.5v9L12 22l-9-6.5v-9z"/></svg></div>
+      <h3>Sourced data</h3>
+      <p>Every flag links back to the study or regulatory source it came from — nothing made up.</p>
+    </div>
+    <div class="feature-card reveal delay-3">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 17l-5 3 1.5-6L3 9.5l6.2-.5L12 3l2.8 6 6.2.5-5.5 4.5 1.5 6z"/></svg></div>
+      <h3>Real reviews</h3>
+      <p>Ratings from people with your same skin type, so feedback is actually relevant to you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- INGREDIENT CHECKER -->
+<section id="checker" style="padding:0;max-width:100%;">
+  <div class="checker-section reveal">
+    <div class="checker-inner">
+      <div class="checker-copy">
+        <div class="eyebrow"><span class="dot" style="background:var(--gold);"></span> Live ingredient check</div>
+        <h2>Type any ingredient. Get the truth instantly.</h2>
+        <p>No signup needed. See how Mirage flags what the label buries. Try parabens, retinol, or your cleanser's ingredient list.</p>
+      </div>
+      <div class="checker-tool">
+        <div class="checker-input-wrap">
+          <input class="checker-input" id="checkerInput" placeholder="e.g. Sodium Lauryl Sulfate" oninput="checkIngredient(this.value)" />
+          <div class="checker-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        </div>
+        <div class="common-tags" id="commonTags"></div>
+        <div class="checker-results" id="checkerResults">
+          <div class="checker-empty">Type an ingredient above or pick one to check →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKIN QUIZ -->
+<section id="quiz" style="padding:60px 0;max-width:100%;">
+  <div class="quiz-section reveal">
+    <div class="quiz-inner">
+      <div class="quiz-copy">
+        <div class="eyebrow"><span class="dot"></span> 60-second quiz</div>
+        <h2>What's your skin actually like?</h2>
+        <p>Four questions. Honest answers. Mirage tells you your skin type and what it needs — no dermatologist appointment required.</p>
+      </div>
+      <div class="quiz-widget" id="quizWidget">
+        <div class="quiz-progress" id="quizProgress"></div>
+        <div id="quizContent"></div>
+        <div class="quiz-nav" id="quizNav"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-head reveal">
+    <div class="eyebrow"><span class="dot"></span> Three steps</div>
+    <h2>From label to clarity in under a minute.</h2>
+  </div>
+  <div class="steps">
+    <div class="step-row reveal delay-1">
+      <div class="step-num">01</div>
+      <div><h4>Scan</h4><p>Use your camera to scan your skin or a product barcode — no typing required.</p></div>
+    </div>
+    <div class="step-row reveal delay-2">
+      <div class="step-num">02</div>
+      <div><h4>Understand</h4><p>See a transparency score and an ingredient-by-ingredient breakdown, written in plain English.</p></div>
+    </div>
+    <div class="step-row reveal delay-3">
+      <div class="step-num">03</div>
+      <div><h4>Act</h4><p>Get a routine built around what your skin actually needs, updated as your skin changes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" style="padding:0;max-width:100%;">
+  <div class="cta-band reveal">
+    <h2>Stop guessing what's in your skincare.</h2>
+    <p>Free to start. No credit card. Takes under two minutes.</p>
+    <div class="cta-email-row" id="ctaEmailRow">
+      <input class="cta-email-input" id="ctaEmail" type="email" placeholder="Your email address" />
+      <button class="btn-primary" onclick="handleCTASubmit()" style="cursor:pointer;">
+        Try Mirage free <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="cta-success" id="ctaSuccess">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+      You're on the list — we'll be in touch soon!
+    </div>
+    <div class="cta-note">Free to start. No credit card required.</div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 Mirage. Beauty intelligence, decoded.</div>
+  <div style="display:flex;gap:20px;"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
+</footer>
+
+<script>
+// ── CURSOR GLOW ──
+const glow = document.getElementById('cursorGlow');
+document.addEventListener('mousemove', e => {
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
+
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ── MOBILE MENU ──
+function toggleMenu(){
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+// ── SCROLL REVEAL ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); observer.unobserve(e.target); }});
+}, {threshold:.12});
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el => observer.observe(el));
+
+// ── COUNTER ANIMATION ──
+function animateCount(el){
+  const target = parseInt(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  const dur = 1400;
+  const start = performance.now();
+  function step(now){
+    const p = Math.min((now - start)/dur, 1);
+    const eased = 1 - Math.pow(1-p, 3);
+    const val = Math.round(eased * target);
+    el.textContent = val + suffix;
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+const countObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting && e.target.dataset.count){
+      animateCount(e.target);
+      countObs.unobserve(e.target);
+    }
+  });
+}, {threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el => countObs.observe(el));
+
+// ── PHONE TABS ──
+let activeScreen = 0;
+function switchScreen(idx){
+  document.querySelectorAll('.mock-screen').forEach((s,i) => s.classList.toggle('active', i===idx));
+  document.querySelectorAll('.phone-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  activeScreen = idx;
+}
+
+// ── TICKER ──
+const tickerItems = [
+  '40K+ ingredients indexed','Backed by peer-reviewed science','Free to start',
+  'No marketing fluff','6-factor transparency score','Routine built for your skin type',
+  'Real reviews from your skin type','Barcode scan in &lt;3s','Fragrance-free formulas flagged',
+  'Silicone &amp; paraben alerts','Clean beauty, actually defined'
+];
+const track = document.getElementById('tickerTrack');
+const doubled = [...tickerItems, ...tickerItems];
+track.innerHTML = doubled.map(t => `<div class="ticker-item"><div class="t-dot"></div>${t}</div>`).join('');
+
+// ── INGREDIENT CHECKER ──
+const ingredientDB = {
+  'hyaluronic acid':{name:'Hyaluronic Acid',status:'good',tag:'Safe',desc:'A powerful humectant that draws moisture into the skin. Well-tolerated by all skin types.'},
+  'niacinamide':{name:'Niacinamide',status:'good',tag:'Safe',desc:'Reduces pores, brightens skin, and strengthens the barrier. One of the most researched actives.'},
+  'retinol':{name:'Retinol',status:'warn',tag:'Use care',desc:'Effective for anti-aging but can cause irritation and sun sensitivity. Introduce slowly.'},
+  'fragrance':{name:'Fragrance / Parfum',status:'warn',tag:'Caution',desc:'Common allergen. Brands aren\'t required to disclose individual fragrance components.'},
+  'sodium lauryl sulfate':{name:'Sodium Lauryl Sulfate (SLS)',status:'bad',tag:'Avoid',desc:'Harsh surfactant that strips the skin barrier. Associated with irritation and dryness.'},
+  'sls':{name:'Sodium Lauryl Sulfate (SLS)',status:'bad',tag:'Avoid',desc:'Harsh surfactant that strips the skin barrier. Associated with irritation and dryness.'},
+  'parabens':{name:'Parabens',status:'bad',tag:'Flagged',desc:'Preservatives with potential endocrine-disrupting properties. Many brands have moved away from these.'},
+  'methylparaben':{name:'Methylparaben',status:'bad',tag:'Flagged',desc:'A paraben-type preservative. Flagged by the EU as a potential endocrine disruptor at high concentrations.'},
+  'glycerin':{name:'Glycerin',status:'good',tag:'Safe',desc:'Gentle humectant derived from plants or animal fats. Safe, effective, and widely used.'},
+  'vitamin c':{name:'Vitamin C (Ascorbic Acid)',status:'good',tag:'Safe',desc:'Potent antioxidant that brightens and protects. Unstable in light and air — look for airtight packaging.'},
+  'ascorbic acid':{name:'Ascorbic Acid (Vitamin C)',status:'good',tag:'Safe',desc:'The most bioavailable form of Vitamin C. Effective but can cause temporary stinging.'},
+  'alcohol':{name:'Alcohol Denat.',status:'warn',tag:'Caution',desc:'Drying when used as a primary ingredient. In small amounts it helps other ingredients absorb — context matters.'},
+  'titanium dioxide':{name:'Titanium Dioxide',status:'good',tag:'Safe',desc:'Mineral UV filter used in sunscreens. Sits on skin rather than absorbing. Safe and non-irritating.'},
+  'zinc oxide':{name:'Zinc Oxide',status:'good',tag:'Safe',desc:'Broad-spectrum mineral SPF. Soothing, non-irritating, and safe for sensitive skin.'},
+  'salicylic acid':{name:'Salicylic Acid',status:'warn',tag:'Active',desc:'A BHA that exfoliates inside pores. Effective for acne, but can be drying. Avoid during pregnancy.'},
+  'ceramides':{name:'Ceramides',status:'good',tag:'Safe',desc:'Lipids that make up a large part of the skin barrier. Essential for hydration and protection.'},
+  'peptides':{name:'Peptides',status:'good',tag:'Safe',desc:'Short chains of amino acids that signal skin to produce collagen. Gentle and well-tolerated.'},
+  'benzoyl peroxide':{name:'Benzoyl Peroxide',status:'warn',tag:'Caution',desc:'Kills acne bacteria effectively but bleaches fabric and can cause dryness. Use sparingly.'},
+  'mineral oil':{name:'Mineral Oil',status:'ok',tag:'Fine',desc:'Occlusive that locks in moisture. Highly refined cosmetic-grade mineral oil is considered safe by regulators.'},
+  'silicone':{name:'Silicones (Dimethicone etc.)',status:'ok',tag:'Fine',desc:'Smoothing agents that create a silky texture. Not absorbed by skin. Generally considered safe.'},
+};
+const commonTags = ['Hyaluronic Acid','Niacinamide','Fragrance','Retinol','Parabens','SLS','Glycerin','Ceramides'];
+const tagsEl = document.getElementById('commonTags');
+tagsEl.innerHTML = commonTags.map(t =>
+  `<button class="common-tag" onclick="pickIngredient('${t}')">${t}</button>`
+).join('');
+
+function pickIngredient(name){
+  document.getElementById('checkerInput').value = name;
+  checkIngredient(name);
+}
+function checkIngredient(val){
+  const results = document.getElementById('checkerResults');
+  const q = val.trim().toLowerCase();
+  if(!q){ results.innerHTML = '<div class="checker-empty">Type an ingredient above or pick one to check →</div>'; return; }
+  const matches = Object.entries(ingredientDB).filter(([k]) => k.includes(q) || q.includes(k));
+  if(!matches.length){
+    results.innerHTML = '<div class="checker-empty" style="color:#5A7A8E;">No data found for that ingredient yet. Our database grows daily.</div>';
+    return;
+  }
+  results.innerHTML = matches.slice(0,3).map(([,d]) => `
+    <div class="checker-result">
+      <div class="result-dot ${d.status}"></div>
+      <div>
+        <div class="result-name">${d.name}</div>
+        <div class="result-desc">${d.desc}</div>
+      </div>
+      <div class="result-tag ${d.status}">${d.tag}</div>
+    </div>
+  `).join('');
+}
+
+// ── SKIN QUIZ ──
+const quizData = [
+  {
+    q:'How does your skin feel about two hours after washing?',
+    opts:[
+      {emoji:'✨',label:'Tight and a bit dry'},
+      {emoji:'💦',label:'Comfortable and normal'},
+      {emoji:'🌊',label:'Shiny, especially on the forehead and nose'},
+      {emoji:'☯️',label:'Oily in the T-zone, dry on the cheeks'},
+    ]
+  },
+  {
+    q:'How does your skin react to new products?',
+    opts:[
+      {emoji:'🔴',label:'Often stings, goes red, or breaks out'},
+      {emoji:'✅',label:'Usually fine — no real reaction'},
+      {emoji:'🟡',label:'Occasionally clogs pores'},
+      {emoji:'❓',label:'Hard to predict — it varies a lot'},
+    ]
+  },
+  {
+    q:'By midday, what does your skin look like?',
+    opts:[
+      {emoji:'🏜️',label:'Still dry or flaky in places'},
+      {emoji:'🌿',label:'Pretty much the same as morning'},
+      {emoji:'💡',label:'Visibly shiny all over'},
+      {emoji:'📍',label:'Shiny in the middle, tight at the edges'},
+    ]
+  },
+  {
+    q:'What describes your main skin concern?',
+    opts:[
+      {emoji:'💧',label:'Dryness and dehydration'},
+      {emoji:'🔍',label:'Pores and texture'},
+      {emoji:'🌸',label:'Redness or sensitivity'},
+      {emoji:'✨',label:'Dullness and uneven tone'},
+    ]
+  },
+];
+const skinResults = {
+  dry:{emoji:'🏜️',type:'Dry Skin',desc:'Your skin produces less oil than average, which can lead to tightness and flaking. Focus on rich moisturisers and gentle, hydrating actives.',tags:['Hyaluronic Acid','Ceramides','Squalane','No SLS']},
+  normal:{emoji:'🌿',type:'Balanced Skin',desc:'You have the skin most products are designed for — good oil-moisture balance. Focus on maintenance: SPF, antioxidants, and consistency.',tags:['Vitamin C','Niacinamide','SPF Daily','Light Moisturiser']},
+  oily:{emoji:'💧',type:'Oily Skin',desc:'Your skin produces excess sebum, which can lead to shine and breakouts. Look for oil-free formulas, niacinamide, and BHAs.',tags:['Niacinamide','Salicylic Acid','Oil-free','Lightweight SPF']},
+  combination:{emoji:'☯️',type:'Combination Skin',desc:'Your T-zone runs oily while your cheeks run dry. Zone your routine: balance the middle, hydrate the edges.',tags:['Balanced Routine','Niacinamide','Gel Moisturiser','Gentle Cleanser']},
+  sensitive:{emoji:'🌸',type:'Sensitive Skin',desc:'Your barrier is easily disrupted. Stick to short ingredient lists, avoid fragrance and alcohol, and patch-test everything new.',tags:['Fragrance-free','Ceramides','No Alcohol','Patch Test First']},
+};
+let quizAnswers = [];
+let quizStep = 0;
+function renderQuiz(){
+  const prog = document.getElementById('quizProgress');
+  const content = document.getElementById('quizContent');
+  const nav = document.getElementById('quizNav');
+  prog.innerHTML = quizData.map((_,i) =>
+    `<div class="quiz-pip ${i<quizStep?'done':i===quizStep?'active':''}"></div>`
+  ).join('');
+  if(quizStep >= quizData.length){
+    const result = calcResult();
+    content.innerHTML = `
+      <div class="quiz-result">
+        <div class="r-emoji">${result.emoji}</div>
+        <div class="r-type">${result.type}</div>
+        <div class="r-desc">${result.desc}</div>
+        <div class="r-tags">${result.tags.map(t=>`<div class="r-tag">${t}</div>`).join('')}</div>
+        <button class="quiz-restart" onclick="restartQuiz()">Retake quiz</button>
+      </div>`;
+    nav.innerHTML = '';
+    return;
+  }
+  const q = quizData[quizStep];
+  content.innerHTML = `
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-options">
+      ${q.opts.map((o,i)=>`
+        <div class="quiz-opt ${quizAnswers[quizStep]===i?'selected':''}" onclick="selectOpt(${i})">
+          <span class="opt-emoji">${o.emoji}</span>${o.label}
+        </div>`).join('')}
+    </div>`;
+  const hasPrev = quizStep > 0;
+  const hasAnswer = quizAnswers[quizStep] !== undefined;
+  const isLast = quizStep === quizData.length - 1;
+  nav.innerHTML = `
+    ${hasPrev ? `<button class="quiz-btn back" onclick="quizBack()">← Back</button>` : ''}
+    <button class="quiz-btn next" onclick="quizNext()" ${!hasAnswer?'disabled':''}>
+      ${isLast ? 'See my result' : 'Next →'}
+    </button>`;
+}
+function selectOpt(i){
+  quizAnswers[quizStep] = i;
+  renderQuiz();
+}
+function quizNext(){ if(quizAnswers[quizStep]!==undefined){ quizStep++; renderQuiz(); }}
+function quizBack(){ if(quizStep>0){ quizStep--; renderQuiz(); }}
+function restartQuiz(){ quizAnswers=[]; quizStep=0; renderQuiz(); }
+function calcResult(){
+  const map = ['dry','normal','oily','combination'];
+  const counts = {};
+  quizAnswers.forEach(a => { const k = map[a]||'normal'; counts[k]=(counts[k]||0)+1; });
+  // check sensitivity flag (q2, opt 0)
+  if(quizAnswers[1]===0) return skinResults.sensitive;
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'normal';
+  return skinResults[top] || skinResults.normal;
+}
+renderQuiz();
+
+// ── CTA EMAIL ──
+function handleCTASubmit(){
+  const email = document.getElementById('ctaEmail').value.trim();
+  if(!email || !email.includes('@')){ document.getElementById('ctaEmail').style.borderColor='#E05555'; return; }
+  document.getElementById('ctaEmailRow').style.display='none';
+  document.getElementById('ctaSuccess').classList.add('show');
+}
+document.getElementById('ctaEmail')?.addEventListener('keydown', e => { if(e.key==='Enter') handleCTASubmit(); });
+</script>
+</body>
+</html>
