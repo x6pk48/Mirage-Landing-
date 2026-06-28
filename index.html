@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -497,6 +498,67 @@
     mix-blend-mode:multiply;
   }
   @media(max-width:760px){.cursor-glow{display:none;}}
+
+  /* ===== RESPONSIVE OVERHAUL ===== */
+  @media(max-width:900px){
+    .hero{flex-direction:column;text-align:center;padding:120px 6% 60px;gap:48px;}
+    .hero-copy{max-width:100%;}
+    .hero-actions{justify-content:center;}
+    .hero-trust{justify-content:center;}
+    .checker-inner,.quiz-inner{text-align:center;}
+    .checker-copy,.quiz-copy{text-align:center;}
+    .common-tags,.cta-email-row{justify-content:center;}
+  }
+  @media(max-width:760px){
+    section{padding:70px 6%;}
+    .checker-section,.quiz-section{padding:48px 6%;margin:0 4% 40px;border-radius:24px;}
+    #quiz .quiz-section{margin:0 4%;}
+    .cta-band{margin:30px 4% 70px;padding:56px 7%;border-radius:24px;}
+    .section-head{margin-bottom:40px;}
+    .phone{width:min(290px,70vw);height:min(592px,143vw);}
+    .stat-cell .s-num{font-size:32px;}
+  }
+  @media(max-width:480px){
+    .hero{padding:110px 5% 50px;}
+    h1{font-size:clamp(32px,9vw,40px);}
+    .hero p.sub{font-size:15.5px;}
+    .hero-trust{gap:20px;}
+    .btn-primary,.btn-secondary{font-size:14px;}
+    .phone{width:min(250px,68vw);height:min(510px,139vw);padding:10px;border-radius:34px;}
+    .phone .screen{border-radius:26px;}
+    section{padding:56px 5%;}
+    .checker-section,.quiz-section{padding:36px 6%;}
+    .cta-band{padding:44px 6%;}
+    .cta-email-input{width:100%;}
+    .stats-row{margin-bottom:40px;}
+    .feature-card{padding:26px 22px;}
+    footer{flex-direction:column;text-align:center;}
+  }
+  @media(max-width:380px){
+    .nav-links,.logo{font-size:13px;}
+    .hero-trust{flex-direction:column;align-items:center;gap:14px;}
+  }
+
+  /* ===== FUN STUFF ===== */
+  .logo .mark{animation:wiggle 5s ease-in-out infinite;}
+  @keyframes wiggle{0%,92%,100%{transform:rotate(0deg);}94%{transform:rotate(-8deg);}96%{transform:rotate(7deg);}98%{transform:rotate(-4deg);}}
+  .btn-primary:active,.quiz-btn:active,.common-tag:active{transform:scale(.94)!important;}
+  .btn-primary svg{transition:transform .25s;}
+  .btn-primary:hover svg{transform:translateX(4px);}
+  .feature-card:hover{animation:tilt .35s ease;}
+  @keyframes tilt{0%{transform:translateY(-6px) rotate(0deg);}30%{transform:translateY(-7px) rotate(-1.2deg);}60%{transform:translateY(-7px) rotate(1deg);}100%{transform:translateY(-6px) rotate(0deg);}}
+  .quiz-opt{position:relative;overflow:hidden;}
+  .quiz-opt.selected .opt-emoji{animation:popEmoji .4s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes popEmoji{0%{transform:scale(1);}50%{transform:scale(1.5) rotate(10deg);}100%{transform:scale(1);}}
+  .trust-item{cursor:default;}
+  .mock-screen.active .score-ring{animation:ringPop .5s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes ringPop{0%{transform:scale(.85);}60%{transform:scale(1.06);}100%{transform:scale(1);}}
+  .confetti-piece{position:fixed;top:-10px;font-size:18px;z-index:9998;pointer-events:none;animation:confettiFall linear forwards;}
+  @keyframes confettiFall{to{transform:translateY(110vh) rotate(540deg);opacity:.2;}}
+  .phone-wrap{perspective:900px;}
+  @media(hover:hover){
+    .phone{transition:transform .15s ease-out;}
+  }
 </style>
 </head>
 <body>
@@ -756,6 +818,35 @@
 </footer>
 
 <script>
+// ── PHONE TILT (fun parallax, desktop only) ──
+const phoneEl = document.getElementById('phoneDevice');
+if(window.matchMedia('(hover:hover)').matches && phoneEl){
+  document.addEventListener('mousemove', e => {
+    const r = phoneEl.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const dx = (e.clientX - cx)/r.width, dy = (e.clientY - cy)/r.height;
+    const dist = Math.hypot(e.clientX-cx, e.clientY-cy);
+    phoneEl.style.transform = dist < 500 ? `rotateY(${dx*10}deg) rotateX(${-dy*10}deg)` : '';
+  });
+}
+
+// ── CONFETTI (little celebratory burst) ──
+function confettiBurst(x, y, count=18){
+  const emojis = ['✨','🌟','💫','🩷','🧴','🌿'];
+  for(let i=0;i<count;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const spread = (Math.random()-0.5)*Math.min(window.innerWidth*0.6,500);
+    piece.style.left = (x + spread) + 'px';
+    piece.style.top = (y - 20) + 'px';
+    piece.style.animationDuration = (1.6 + Math.random()*1.2) + 's';
+    piece.style.fontSize = (14 + Math.random()*14) + 'px';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3000);
+  }
+}
+
 // ── CURSOR GLOW ──
 const glow = document.getElementById('cursorGlow');
 document.addEventListener('mousemove', e => {
@@ -948,6 +1039,8 @@ function renderQuiz(){
         <button class="quiz-restart" onclick="restartQuiz()">Retake quiz</button>
       </div>`;
     nav.innerHTML = '';
+    const widgetRect = document.getElementById('quizWidget').getBoundingClientRect();
+    confettiBurst(widgetRect.left + widgetRect.width/2, widgetRect.top + 40, 14);
     return;
   }
   const q = quizData[quizStep];
@@ -992,6 +1085,8 @@ function handleCTASubmit(){
   if(!email || !email.includes('@')){ document.getElementById('ctaEmail').style.borderColor='#E05555'; return; }
   document.getElementById('ctaEmailRow').style.display='none';
   document.getElementById('ctaSuccess').classList.add('show');
+  const rect = document.getElementById('ctaSuccess').getBoundingClientRect();
+  confettiBurst(rect.left + rect.width/2, rect.top);
 }
 document.getElementById('ctaEmail')?.addEventListener('keydown', e => { if(e.key==='Enter') handleCTASubmit(); });
 </script>
